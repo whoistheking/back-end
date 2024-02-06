@@ -10,5 +10,6 @@ public class NaverDTO {
     private String id;
     private String email;
     private String name;
+    private String token;
 
 }

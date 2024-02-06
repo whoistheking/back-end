@@ -102,7 +102,8 @@ public class NaverService {
         return NaverDTO.builder()
                 .id(id)
                 .email(email)
-                .name(name).build();
+                .name(name)
+                .token(accessToken).build();
     }
 
 }
