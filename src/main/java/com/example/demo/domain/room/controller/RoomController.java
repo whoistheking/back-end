@@ -37,7 +37,7 @@ public class RoomController {
         return null;
     }
 
-    //게임 시작 & 53장 카드 배분
+    //게임 시작 & 53장 카드 배분 & 시작 플레이어 정하기
     @PostMapping("/start")
     public ResponseEntity<?> start() {
         return null;

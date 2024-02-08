@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CardController {
 
     //카드 조회
-    @GetMapping("/share")
+    @GetMapping("/check")
     public ResponseEntity<?> share() {
         return null;
     }
@@ -26,7 +26,7 @@ public class CardController {
         return null;
     }
 
-    //카드 뽑기 & 카드 중복 제거 & 종료 & 경험치
+    //카드 뽑기 & 카드 중복 제거 & 종료된 사람 순서 스킵 & 종료 & 경험치
     @PostMapping("/distinct")
     public ResponseEntity<?> distinct() {
         return null;
