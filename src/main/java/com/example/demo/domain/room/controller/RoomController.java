@@ -1,5 +1,6 @@
 package com.example.demo.domain.room.controller;
 
+import com.example.demo.domain.room.service.RoomService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/room")
 public class RoomController {
 
+    private final RoomService roomService;
     //사설 방 생성
     @PostMapping("/create")
     public ResponseEntity<?> create() {
-        return null;
+        return roomService.createRoom();
     }
 
     //자동 매칭 시스템
