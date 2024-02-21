@@ -40,7 +40,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
+//        config.setAllowCredentials(true);
         config.addAllowedOrigin("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
@@ -95,7 +95,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(HttpMethod.POST, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                        .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
         http.cors(Customizer.withDefaults());
