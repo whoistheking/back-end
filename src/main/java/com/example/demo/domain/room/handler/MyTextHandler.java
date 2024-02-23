@@ -1,7 +1,7 @@
 package com.example.demo.domain.room.handler;
 
 import com.example.demo.domain.room.dto.GameMessage;
-import com.example.demo.domain.room.entity.GameRoom;
+import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.service.RoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class MyTextHandler extends TextWebSocketHandler {
         GameMessage gameMessage = objectMapper.readValue(payload, GameMessage.class);
 
         //session 연결 & 메시지 전송 (경우의 수에 따라 다르게 처리)
-        GameRoom gameRoom = roomService.findRoomById(gameMessage.getRoomId());
+        Room gameRoom = roomService.findRoomById(gameMessage.getRoomId());
         handlerActions(session, gameMessage, roomService);
     }
     public void handlerActions(WebSocketSession session, GameMessage gameMessage, RoomService roomService) {

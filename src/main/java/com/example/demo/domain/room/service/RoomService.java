@@ -4,20 +4,27 @@ import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.repository.RoomRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class RoomService {
 
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public ResponseEntity<?> create(User user) {
         try {
@@ -123,17 +130,17 @@ public class RoomService {
 
     public ResponseEntity<?> createRoom() {
         String randomId = UUID.randomUUID().toString();
-        GameRoom gameRoom = new GameRoom(randomId);
+        Room gameRoom = new Room(randomId);
         roomRepository.save(gameRoom);
         return ResponseEntity.ok(gameRoom);
     }
 
-    public GameRoom findRoomById(String roomId) {
+    public Room findRoomById(String roomId) {
         return roomRepository.findByRoomId(roomId);
     }
 
     public <T> void sendMessage(WebSocketSession session, T message) {
-        try{
+        try {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
