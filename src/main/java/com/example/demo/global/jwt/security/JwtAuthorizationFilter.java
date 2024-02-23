@@ -51,7 +51,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     public void setAuthentication(String username) {
         Authentication authentication = createAuthentication(username);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        logger.info((Object) "인증처리: {}", (Throwable) SecurityContextHolder.getContext().getAuthentication());
+        log.info("인증처리: {}", (SecurityContextHolder.getContext().getAuthentication()));
     }
 
     // 인증 객체 생성

@@ -1,6 +1,11 @@
 package com.example.demo.domain.home.naver.service;
 
 import com.example.demo.domain.home.naver.dto.NaverDTO;
+import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.entity.UserRoleEnum;
+import com.example.demo.domain.user.entity.UserSocialEnum;
+import com.example.demo.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class NaverService {
 
     @Value("${naver.client.id}")
@@ -27,6 +33,7 @@ public class NaverService {
 
     private final static String NAVER_AUTH_URI = "https://nid.naver.com";
     private final static String NAVER_API_URI = "https://openapi.naver.com";
+    private final UserRepository userRepository;
 
     public String getNaverLogin() {
         return NAVER_AUTH_URI + "/oauth2.0/authorize"
@@ -46,11 +53,11 @@ public class NaverService {
             headers.add("Content-type", "application/x-www-form-urlencoded");
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("grant_type"   , "authorization_code");
-            params.add("client_id"    , NAVER_CLIENT_ID);
+            params.add("grant_type", "authorization_code");
+            params.add("client_id", NAVER_CLIENT_ID);
             params.add("client_secret", NAVER_CLIENT_SECRET);
-            params.add("code"         , code);
-            params.add("redirect_uri" , NAVER_REDIRECT_URL);
+            params.add("code", code);
+            params.add("redirect_uri", NAVER_REDIRECT_URL);
 
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
@@ -65,7 +72,7 @@ public class NaverService {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObj = (JSONObject) jsonParser.parse(response.getBody());
 
-            accessToken  = (String) jsonObj.get("access_token");
+            accessToken = (String) jsonObj.get("access_token");
             refreshToken = (String) jsonObj.get("refresh_token");
         } catch (Exception e) {
             throw new Exception("API call failed");
@@ -92,18 +99,24 @@ public class NaverService {
 
         //Response 데이터 파싱
         JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObj    = (JSONObject) jsonParser.parse(response.getBody());
+        JSONObject jsonObj = (JSONObject) jsonParser.parse(response.getBody());
         JSONObject account = (JSONObject) jsonObj.get("response");
 
         String id = String.valueOf(account.get("id"));
         String email = String.valueOf(account.get("email"));
         String name = String.valueOf(account.get("name"));
 
+        //User 테이블에 저장 //데이터 뭐 쓸지 확인 필요(social enum도 붙일지 생각해볼것)
+        if (userRepository.findByEmail(email).isEmpty()) {
+            User user = new User(id, name, email, UserSocialEnum.NAVER, UserRoleEnum.USER);
+            userRepository.save(user);
+        }
+
         return NaverDTO.builder()
                 .id(id)
                 .email(email)
                 .name(name)
                 .token(accessToken).build();
-    }
+    }//나중에 시간되면 소셜 통합정리
 
 }

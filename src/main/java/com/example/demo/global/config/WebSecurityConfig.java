@@ -104,7 +104,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
                         .requestMatchers(HttpMethod.POST, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                        .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
         http.cors(Customizer.withDefaults());
