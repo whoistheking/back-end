@@ -79,4 +79,8 @@ public class User {
     public void setDone() {
         this.done = true;
     }
+
+    public void leave() {
+        this.room = null;
+    }
 }

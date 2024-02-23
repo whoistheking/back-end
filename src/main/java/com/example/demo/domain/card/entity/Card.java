@@ -16,14 +16,11 @@ public class Card {
     @Column(name = "card_id")
     private Long cardId;
 
-//    @Column(name = "card")
-//    private boolean cardNum;    //???
-
-    @Column(name = "suit")
-    private String suit;
+//    @Column(name = "suit")
+//    private String suit;
 
     @Column(name = "card_num")
-    private String cardNum;
+    private Integer cardNum;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
