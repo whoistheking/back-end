@@ -101,7 +101,7 @@ public class CardService {
         return null;
     }
 
-    //내 손패 중복제거
+    //내 손패 중복제거(쓰나?)
     public List<Integer> distinct(List<Integer> playerHands) {
 
         Map<Integer, Integer> countMap = new HashMap<>();
