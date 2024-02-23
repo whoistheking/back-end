@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class RoomController {
 
     private final RoomService roomService;
-
+  
     //사설 방 생성
     @PostMapping("/create")
     public ResponseEntity<?> create(@AuthenticationPrincipal UserDetailsImpl userDetails) {

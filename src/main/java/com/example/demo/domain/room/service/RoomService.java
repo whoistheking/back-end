@@ -120,4 +120,23 @@ public class RoomService {
             return ResponseEntity.badRequest().build();
         }
     }       //새로고침이나 강제종료후 처음부터 접속하면 초기화를 어떻게 시켜야되지?
+
+    public ResponseEntity<?> createRoom() {
+        String randomId = UUID.randomUUID().toString();
+        GameRoom gameRoom = new GameRoom(randomId);
+        roomRepository.save(gameRoom);
+        return ResponseEntity.ok(gameRoom);
+    }
+
+    public GameRoom findRoomById(String roomId) {
+        return roomRepository.findByRoomId(roomId);
+    }
+
+    public <T> void sendMessage(WebSocketSession session, T message) {
+        try{
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
 }
