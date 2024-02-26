@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);   //username이랑 섞인거 아니겠지?
     Room findRoomByUserId(String userId);
-    String findByUserId(String userId); //이메일로 찾아야될듯?
+    User findByUserId(String userId); //이메일로 찾아야될듯?
 //    ArrayList<Card> findCardsByUserId(String userId);
 
     List<User> findUsersByRoomRoomId(String roomId);

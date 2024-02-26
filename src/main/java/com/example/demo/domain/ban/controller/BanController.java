@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "예제 API", description = "Swagger 테스트용 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping("/ban")
 public class BanController {
 
     private final BanService banService;
 
-    @PostMapping("/create")
+    @PostMapping("/user")
     public ResponseEntity<?> ban() {
         return null;
     }

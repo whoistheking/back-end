@@ -54,4 +54,8 @@ public class Room extends Timestamped {
     public void changeManager(String userId) {
         this.roomManager = userId;
     }
+
+    public void leaveRoom() {
+        this.headCount = getHeadCount() - 1L;
+    }
 }

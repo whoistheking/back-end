@@ -1,6 +1,6 @@
 package com.example.demo.domain.room.handler;
 
-import com.example.demo.domain.room.dto.GameMessage;
+import com.example.demo.domain.room.dto.GameMessageDto;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.service.RoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,15 +27,15 @@ public class MyTextHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception{
         //페이로드에서 gameMessage(DTO)로 변환
         String payload = message.getPayload();
-        GameMessage gameMessage = objectMapper.readValue(payload, GameMessage.class);
+        GameMessageDto gameMessage = objectMapper.readValue(payload, GameMessageDto.class);
 
         //session 연결 & 메시지 전송 (경우의 수에 따라 다르게 처리)
         Room gameRoom = roomService.findRoomById(gameMessage.getRoomId());
         handlerActions(session, gameMessage, roomService);
     }
-    public void handlerActions(WebSocketSession session, GameMessage gameMessage, RoomService roomService) {
+    public void handlerActions(WebSocketSession session, GameMessageDto gameMessage, RoomService roomService) {
         //현재 접속중인 상태인지 판별한 후 session 연결과 입장 메세지 전송
-        if (gameMessage.getMessageType().equals(GameMessage.MessageType.ENTER)){
+        if (gameMessage.getType().equals(GameMessageDto.MessageType.ENTER)){
             sessions.add(session);
             gameMessage.setMessage(gameMessage.getSender());
         }
