@@ -139,7 +139,7 @@ public class RoomService {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-    }       //새로고침이나 강제종료후 처음부터 접속하면 초기화를 어떻게 시켜야되지?
+    }       //새로고침이나 강제종료후 처음부터 접속하면 초기화를 어떻게 시켜야되지? (로그인시 해당 유저 정보가 저장된 방이 있는지 체크해보면 될듯?)
 
     public ResponseEntity<?> createRoom() {
         String randomId = UUID.randomUUID().toString();
