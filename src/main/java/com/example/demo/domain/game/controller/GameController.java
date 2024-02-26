@@ -1,9 +1,10 @@
 package com.example.demo.domain.game.controller;
 
+import com.example.demo.domain.card.dto.CardMessageDto;
 import com.example.demo.domain.card.entity.Card;
 import com.example.demo.domain.card.repository.CardRepository;
 import com.example.demo.domain.card.service.CardService;
-import com.example.demo.domain.game.dto.GameMessageDto;
+import com.example.demo.domain.room.dto.GameMessageDto;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.repository.RoomRepository;
 import com.example.demo.domain.room.service.RoomService;
@@ -11,7 +12,6 @@ import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -40,10 +40,7 @@ public class GameController {
             System.out.println("여기에 들어오나" + message.getType());
             gameReady(message);
         }
-        if (GameMessageDto.MessageType.ENDTURN.equals(message.getType())) {
-            System.out.println("여기에 들어오나" + message.getType());
-            turnEnd(message);
-        }
+
         if (GameMessageDto.MessageType.ENDGAME.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
             gameEnd(message);
@@ -64,19 +61,30 @@ public class GameController {
             System.out.println("여기에 들어오나" + message.getType());
             roomMatching(message);
         }
-        if (GameMessageDto.MessageType.CHECK.equals(message.getType())) {
+
+    }
+
+    @MessageMapping("/card/{roomId}")
+    public void cardMessageProxy(@Payload CardMessageDto message) throws JsonProcessingException {
+        System.out.println("여기에 들어오나 메시지매핑 메서드");
+
+        if (CardMessageDto.MessageType.ENDTURN.equals(message.getType())) {
+            System.out.println("여기에 들어오나" + message.getType());
+            turnEnd(message);
+        }
+        if (CardMessageDto.MessageType.CHECK.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
             cardCheck(message);
         }
-        if (GameMessageDto.MessageType.DISTINCT.equals(message.getType())) {
+        if (CardMessageDto.MessageType.DISTINCT.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
             cardDistinct(message);
         }
-        if (GameMessageDto.MessageType.PICK.equals(message.getType())) {
+        if (CardMessageDto.MessageType.PICK.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
             cardPick(message);
         }
-        if (GameMessageDto.MessageType.SHUFFLE.equals(message.getType())) {
+        if (CardMessageDto.MessageType.SHUFFLE.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
             cardShuffle(message);
         }
@@ -122,7 +130,7 @@ public class GameController {
     }
 
     //필요하나?
-    private void turnEnd(GameMessageDto message) {
+    private void turnEnd(CardMessageDto message) {
         System.out.println("여기에 들어오나 플레이어 끝");
         String userId = message.getSender();
         List<Card> cards = cardRepository.findCardsByUserUserId(userId);
@@ -132,10 +140,10 @@ public class GameController {
         }
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
-        GameMessageDto gameMessage = new GameMessageDto();
-        gameMessage.setRoomId(message.getRoomId());
-        gameMessage.setSender(message.getSender());
-        gameMessage.setType(GameMessageDto.MessageType.ENDTURN);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.ENDTURN);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
@@ -258,23 +266,23 @@ public class GameController {
     }
 
     //cards를 보는 용도인데 수정이 필요함
-    private void cardCheck(GameMessageDto message) {
+    private void cardCheck(CardMessageDto message) {
         System.out.println("여기에 들어오나 내 카드 조회");
         User user = userRepository.findByUserId(message.getSender());
         String userId = user.getUserId();
         List<Card> cards = cardRepository.findCardsByUserUserId(userId);
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
-        GameMessageDto gameMessage = new GameMessageDto();
-        gameMessage.setRoomId(message.getRoomId());
-        gameMessage.setSender(message.getSender());
-        gameMessage.setType(GameMessageDto.MessageType.CHECK);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.CHECK);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //중복 제거 수정 필요
-    private void cardDistinct(GameMessageDto message) {
+    private void cardDistinct(CardMessageDto message) {
         System.out.println("여기에 들어오나 카드 중복 제거");
         List<Integer> playerHands = cardRepository.findCardNumByUserUserId(message.getSender());
         Map<Integer, Integer> countMap = new HashMap<>();
@@ -292,40 +300,40 @@ public class GameController {
         }
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
-        GameMessageDto gameMessage = new GameMessageDto();
-        gameMessage.setRoomId(message.getRoomId());
-        gameMessage.setSender(message.getSender());
-        gameMessage.setType(GameMessageDto.MessageType.DISTINCT);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.DISTINCT);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //상대방 카드 뽑기 수정 필요
-    private void cardPick(GameMessageDto message) {
+    private void cardPick(CardMessageDto message) {
         System.out.println("여기에 들어오나 상대 카드 뽑기");
         List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
 //        cards.add(card);    //카드 어디로 반환해?
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
-        GameMessageDto gameMessage = new GameMessageDto();
-        gameMessage.setRoomId(message.getRoomId());
-        gameMessage.setSender(message.getSender());
-        gameMessage.setType(GameMessageDto.MessageType.PICK);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.PICK);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //수정 필요
-    private void cardShuffle(GameMessageDto message) {
+    private void cardShuffle(CardMessageDto message) {
         System.out.println("여기에 들어오나 내 카드 섞기");
         List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
         Collections.shuffle(cards);
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
-        GameMessageDto gameMessage = new GameMessageDto();
-        gameMessage.setRoomId(message.getRoomId());
-        gameMessage.setSender(message.getSender());
-        gameMessage.setType(GameMessageDto.MessageType.SHUFFLE);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.SHUFFLE);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
