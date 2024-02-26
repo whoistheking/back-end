@@ -82,5 +82,7 @@ public class User {
 
     public void leave() {
         this.room = null;
+        this.ready = false;
+        this.done = false;
     }
 }

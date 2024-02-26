@@ -140,7 +140,9 @@ public class GameController {
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
+    //경험치 추가 안했음
     private void gameEnd(GameMessageDto message) {
+        System.out.println("여기에 들어오나 게임 끝");
         String roomId = message.getRoomId();
         Room room = roomRepository.findByRoomId(roomId);
         List<User> users = userRepository.findUsersByRoomRoomId(message.getRoomId());
@@ -165,6 +167,7 @@ public class GameController {
 
     //안쓸거 같은데
     private void roomCreate(GameMessageDto message) {
+        System.out.println("여기에 들어오나 방 생성");
         User user = userRepository.findByUserId(message.getSender());
         String uuid = UUID.randomUUID().toString();
         Room room = new Room(uuid, user.getUserId(), false);
@@ -183,6 +186,7 @@ public class GameController {
     }
 
     private void roomJoin(GameMessageDto message) {
+        System.out.println("여기에 들어오나 방 입장");
         Room room = roomRepository.findByRoomId(message.getRoomId());
         User user = userRepository.findByUserId(message.getSender());
 
@@ -202,6 +206,7 @@ public class GameController {
     }
 
     private void roomLeave(GameMessageDto message) {
+        System.out.println("여기에 들어오나 방 떠나기");
         String roomId = message.getRoomId();
         User user = userRepository.findByUserId(message.getSender());
         Room room = roomRepository.findByRoomId(roomId);
@@ -231,6 +236,7 @@ public class GameController {
 
     //필요한가?
     private void roomMatching(GameMessageDto message) {
+        System.out.println("여기에 들어오나 방 자동 매칭");
         String roomId = roomRepository.findRoomIdByCreatedAsc();
         if (roomId == null) {
             User user = userRepository.findByUserId(message.getSender());
@@ -253,6 +259,7 @@ public class GameController {
 
     //cards를 보는 용도인데 수정이 필요함
     private void cardCheck(GameMessageDto message) {
+        System.out.println("여기에 들어오나 내 카드 조회");
         User user = userRepository.findByUserId(message.getSender());
         String userId = user.getUserId();
         List<Card> cards = cardRepository.findCardsByUserUserId(userId);
@@ -268,6 +275,7 @@ public class GameController {
 
     //중복 제거 수정 필요
     private void cardDistinct(GameMessageDto message) {
+        System.out.println("여기에 들어오나 카드 중복 제거");
         List<Integer> playerHands = cardRepository.findCardNumByUserUserId(message.getSender());
         Map<Integer, Integer> countMap = new HashMap<>();
 
@@ -294,6 +302,7 @@ public class GameController {
 
     //상대방 카드 뽑기 수정 필요
     private void cardPick(GameMessageDto message) {
+        System.out.println("여기에 들어오나 상대 카드 뽑기");
         List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
 //        cards.add(card);    //카드 어디로 반환해?
 
@@ -308,6 +317,7 @@ public class GameController {
 
     //수정 필요
     private void cardShuffle(GameMessageDto message) {
+        System.out.println("여기에 들어오나 내 카드 섞기");
         List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
         Collections.shuffle(cards);
 

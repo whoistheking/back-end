@@ -105,22 +105,35 @@ public class RoomService {
             //시작시 카드 배분으로 넘겨야되는데 리다이렉트로 연결해줘야되나? 프론트가 하는걸까?
 
             //시작시 선이 누군지 정할건데 저장을 해줘야될까? 아니면 start메서드 안에 넣는게 맞나? roommanager가 선임
-            String FirstPlayer = room.getRoomManager();
+            int random= (int) (Math.random() * room.getHeadCount());
+            List<User> users = userRepository.findUsersByRoomRoomId(roomId);
 
-            return new ResponseEntity(HttpStatusCode.valueOf(200)).ok("게임시작");
+            String firstStart = users.get(random).getUserId();
+
+            return new ResponseEntity(HttpStatusCode.valueOf(200)).ok(firstStart);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    public ResponseEntity<?> leave(String roomId) { //떠나면 방인수 줄이고 해당인원 없애는거 생각해야되는듯 나중에 체크
+    public ResponseEntity<?> leave(String roomId, User user) { //떠나면 방인수 줄이고 해당인원 없애는거 생각해야되는듯 나중에 체크
         try {
             Room room = roomRepository.findByRoomId(roomId);
             if (room.getHeadCount() == 1) {
                 roomRepository.deleteRoomByRoomId(roomId);
+
+                return null;
             }
-            //룸과 유저 매핑한뒤 참여한 userid중에 매니저 권한 한명주기(랜덤, 시간순 알아서 판단)
-            //준비 상태값도 초기화해야됨
+            user.leave();
+            
+            int random= (int) (Math.random() * room.getHeadCount());
+            List<User> users = userRepository.findUsersByRoomRoomId(roomId);
+
+            String newManager = users.get(random).getUserId();
+            room.changeManager(newManager);
+
+            roomRepository.save(room);
+            userRepository.save(user);
 
             return null;
         } catch (Exception e) {

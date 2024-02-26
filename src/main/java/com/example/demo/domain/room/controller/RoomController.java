@@ -53,7 +53,8 @@ public class RoomController {
 
     //방 나가기(사람이 없을시 방 폭파)(방장 넘기기 랜덤)
     @PostMapping("/leave/{roomId}")
-    public ResponseEntity<?> leave(@PathVariable String roomId) {
-        return roomService.leave(roomId);
+    public ResponseEntity<?> leave(@PathVariable String roomId,
+                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return roomService.leave(roomId, userDetails.getUser());
     }
 }
