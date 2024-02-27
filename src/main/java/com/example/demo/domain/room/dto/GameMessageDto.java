@@ -22,4 +22,8 @@ public class GameMessageDto {
     private String content;
     private MessageType type;
 
+    public void setMessage(String sender) {
+        this.content = sender + "님이 입장했습니다";
+    }
+
 }
