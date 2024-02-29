@@ -1,14 +1,10 @@
 package com.example.demo.domain.user.entity;
 
-import com.example.demo.domain.card.entity.Card;
 import com.example.demo.domain.room.entity.Room;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
-import java.util.List;
 import java.util.UUID;
 
 import static lombok.AccessLevel.PROTECTED;
@@ -20,7 +16,7 @@ public class User {
 
     @Id
     @Column(name = "user_id")
-    private String userId = String.valueOf(UUID.randomUUID());
+    private String userId = String.valueOf(UUID.randomUUID());//소셜로그인 연동 후 삭제 필요
 
     @Column(nullable = false)
     private String name;
@@ -42,10 +38,10 @@ public class User {
     @Column(nullable = false)
     private Long exp;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private boolean ready;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private boolean done;
 
     //게임중인지도 판별해서 넣어줄건가요?
