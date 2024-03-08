@@ -12,6 +12,8 @@ import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -26,15 +28,16 @@ public class GameController {
     private final CardRepository cardRepository;
     private final RoomService roomService;
     private final RoomRepository roomRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     //        private final SimpMessageSendingOperations messagingTemplate;
-    //room 나눠야되나?
-    @MessageMapping("/game/{roomId}")
-    public void gameMessageProxy(@Payload GameMessageDto message) throws JsonProcessingException {
+
+    @MessageMapping("game.{roomId}")
+    public void gameMessageProxy(@DestinationVariable("roomId") Long roomId, @Payload GameMessageDto message) throws JsonProcessingException {
         System.out.println("여기에 들어오나 메시지매핑 메서드");
         if (GameMessageDto.MessageType.START.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            gameStarter(message);
+            gameStarter(roomId, message);
         }
         if (GameMessageDto.MessageType.READY.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
@@ -90,7 +93,7 @@ public class GameController {
         }
     }
 
-    public void gameStarter(GameMessageDto message) throws JsonProcessingException {
+    public void gameStarter(Long roomId, GameMessageDto message) throws JsonProcessingException {
         System.out.println("여기에 들어오나 게임스타터");
         roomService.start(message.getRoomId());
         Room room = roomRepository.findByRoomId(message.getRoomId());
@@ -99,7 +102,9 @@ public class GameController {
         gameMessage.setRoomId(message.getRoomId());
         gameMessage.setSender(message.getSender());
         gameMessage.setType(GameMessageDto.MessageType.START);
-//        gameMessage.setContent(messageContent);
+        gameMessage.setContent("방에 입장하였습니다");
+        rabbitTemplate.convertAndSend("game.exchange", "start.room." + roomId, message);
+
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }   //주석된 부분은 알맞게 수정해주세요.
 
