@@ -4,18 +4,22 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@EnableRabbit
 public class RabbitConfig {
     // 사전작업에서 정한 exchange, queue, routing 등의 정보를 토대로 bean 생성
-    private static final String EXCHANGE_NAME = "sample.exchange";
-    private static final String QUEUE_NAME = "sample.queue";
-    private static final String ROUTING_KEY = "sample.jiwon";
+    private static final String EXCHANGE_NAME = "game.exchange";
+    private static final String QUEUE_NAME = "game.queue";
+    private static final String ROUTING_KEY = "*.room.*";
 
     @Bean
     TopicExchange exchange() {
@@ -31,7 +35,7 @@ public class RabbitConfig {
 
     //Rabbitmq와의 메시지 통신을 담당
     @Bean
-    RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
+    RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
         return rabbitTemplate;

@@ -19,7 +19,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final StompHandler stompHandler;
 
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setPathMatcher(new AntPathMatcher(".")); // URL을 / -> .으로
