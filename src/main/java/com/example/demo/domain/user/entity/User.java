@@ -69,7 +69,7 @@ public class User {
     }
 
     public void setReady() {
-        this.ready = true;
+        this.ready = !(this.ready);
     }
 
     public void setDone() {

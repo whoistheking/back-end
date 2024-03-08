@@ -33,7 +33,7 @@ public class GameController {
     //        private final SimpMessageSendingOperations messagingTemplate;
 
     @MessageMapping("game.{roomId}")
-    public void gameMessageProxy(@DestinationVariable("roomId") Long roomId, @Payload GameMessageDto message) throws JsonProcessingException {
+    public void gameMessageProxy(@DestinationVariable("roomId") String roomId, @Payload GameMessageDto message) throws JsonProcessingException {
         System.out.println("여기에 들어오나 메시지매핑 메서드");
         if (GameMessageDto.MessageType.START.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
@@ -48,13 +48,13 @@ public class GameController {
             System.out.println("여기에 들어오나" + message.getType());
             gameEnd(message);
         }
-        if (GameMessageDto.MessageType.CREATE.equals(message.getType())) {
-            System.out.println("여기에 들어오나" + message.getType());
-            roomCreate(message);
-        }
+//        if (GameMessageDto.MessageType.CREATE.equals(message.getType())) {
+//            System.out.println("여기에 들어오나" + message.getType());
+//            roomCreate(message);
+//        }
         if (GameMessageDto.MessageType.JOIN.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            roomJoin(message);
+            roomJoin(roomId, message);
         }
         if (GameMessageDto.MessageType.LEAVE.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
@@ -93,10 +93,23 @@ public class GameController {
         }
     }
 
-    public void gameStarter(Long roomId, GameMessageDto message) throws JsonProcessingException {
+    public void gameStarter(String roomId, GameMessageDto message) throws JsonProcessingException {
         System.out.println("여기에 들어오나 게임스타터");
         roomService.start(message.getRoomId());
         Room room = roomRepository.findByRoomId(message.getRoomId());
+
+        List<User> users = userRepository.findUsersByRoomRoomId(roomId);
+
+        Long checkReady = 0L;
+        for (User user : users) {
+            if (!user.isReady()) {
+                checkReady++;
+            }
+        }
+        if (!(checkReady == room.getHeadCount())) {
+            return; //에러로 빼?
+        }
+
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         GameMessageDto gameMessage = new GameMessageDto();
         gameMessage.setRoomId(message.getRoomId());
@@ -111,20 +124,13 @@ public class GameController {
     //전원 준비완료한지 확인 후 게임시작 버튼 활성화
     private void gameReady(GameMessageDto message) {
         System.out.println("여기에 들어오나 게임레디");
-        message.getSender();
+        String userId = message.getSender();
         String roomId = message.getRoomId();
+        User user = userRepository.findByUserId(message.getSender());
         Room room = roomRepository.findByRoomId(roomId);
-        List<User> users = userRepository.findUsersByRoomRoomId(roomId);
 
-        Long checkReady = 0L;
-        for (User user : users) {
-            if (!user.isReady()) {
-                checkReady++;
-            }
-        }
-        if (!(checkReady == room.getHeadCount())) {
-            return; //에러로 빼?
-        }
+        user.setReady();
+
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         GameMessageDto gameMessage = new GameMessageDto();
         gameMessage.setRoomId(message.getRoomId());
@@ -198,7 +204,7 @@ public class GameController {
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
-    private void roomJoin(GameMessageDto message) {
+    private void roomJoin(String roomId, GameMessageDto message) {
         System.out.println("여기에 들어오나 방 입장");
         Room room = roomRepository.findByRoomId(message.getRoomId());
         User user = userRepository.findByUserId(message.getSender());
@@ -214,6 +220,8 @@ public class GameController {
         gameMessage.setRoomId(message.getRoomId());
         gameMessage.setSender(message.getSender());
         gameMessage.setType(GameMessageDto.MessageType.JOIN);
+
+        rabbitTemplate.convertAndSend("game.exchange", "join.room." + roomId, message);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
