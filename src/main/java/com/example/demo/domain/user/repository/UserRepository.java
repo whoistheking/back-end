@@ -16,4 +16,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 //    ArrayList<Card> findCardsByUserId(String userId);
 
     List<User> findUsersByRoomRoomId(String roomId);
+    List<String> findUserIdsByRoomRoomId(String roomId);
 }

@@ -1,7 +1,8 @@
 package com.example.demo.domain.game.controller;
 
 import com.example.demo.domain.card.dto.CardMessageDto;
-import com.example.demo.domain.card.entity.Card;
+import com.example.demo.domain.card.dto.CardUserResponseDto;
+import com.example.demo.domain.card.dto.CardsResponseDto;
 import com.example.demo.domain.card.repository.CardRepository;
 import com.example.demo.domain.card.service.CardService;
 import com.example.demo.domain.room.dto.GameMessageDto;
@@ -13,12 +14,14 @@ import com.example.demo.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Controller
@@ -67,29 +70,33 @@ public class GameController {
 
     }
 
-    @MessageMapping("/card/{roomId}")
-    public void cardMessageProxy(@Payload CardMessageDto message) throws JsonProcessingException {
+    @MessageMapping("/card.{roomId}")
+    public void cardMessageProxy(@DestinationVariable("roomId") String roomId, @Payload CardMessageDto message) throws JsonProcessingException {
         System.out.println("여기에 들어오나 메시지매핑 메서드");
 
+        if (CardMessageDto.MessageType.DEAL.equals(message.getType())) {
+            System.out.println("여기에 들어오나" + message.getType());
+            cardDeal(roomId, message);
+        }
         if (CardMessageDto.MessageType.ENDTURN.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            turnEnd(message);
+            turnEnd(roomId, message);
         }
         if (CardMessageDto.MessageType.CHECK.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            cardCheck(message);
+            cardCheck(roomId, message);
         }
         if (CardMessageDto.MessageType.DISTINCT.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            cardDistinct(message);
+            cardDistinct(roomId, message);
         }
         if (CardMessageDto.MessageType.PICK.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            cardPick(message);
+            cardPick(roomId, message);
         }
         if (CardMessageDto.MessageType.SHUFFLE.equals(message.getType())) {
             System.out.println("여기에 들어오나" + message.getType());
-            cardShuffle(message);
+            cardShuffle(roomId, message);
         }
     }
 
@@ -140,21 +147,48 @@ public class GameController {
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
+    private void cardDeal(String roomId, CardMessageDto message) {
+        System.out.println("여기에 들어오나 카드 배분");
+
+        CardUserResponseDto cardUserResponseDto = cardService.startDistinct(message.getRoomId());
+
+//        String userId = message.getSender();
+//        List<Card> cards = cardRepository.findCardsByUserUserId(userId);
+//        if (cards.isEmpty()) {
+//            User user = userRepository.findByUserId(userId);
+//            user.setDone();
+//        }
+
+//        String messageContent = jsonStringBuilder.gameStarter(game);
+        CardMessageDto cardMessage = new CardMessageDto();
+        cardMessage.setRoomId(message.getRoomId());
+        cardMessage.setSender(message.getSender());
+        cardMessage.setType(CardMessageDto.MessageType.DEAL);
+        rabbitTemplate.convertAndSend("game.exchange", "deal.room." + roomId, cardUserResponseDto);
+//        gameMessage.setContent(messageContent);
+//        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
+    }
+
     //필요하나?
-    private void turnEnd(CardMessageDto message) {
+    //message 바꿨는데 뭐가 나은지 나중에 프론트한테 물어보기
+    private void turnEnd(String roomId, CardMessageDto message) {
         System.out.println("여기에 들어오나 플레이어 끝");
+
         String userId = message.getSender();
-        List<Card> cards = cardRepository.findCardsByUserUserId(userId);
-        if (cards.isEmpty()) {
-            User user = userRepository.findByUserId(userId);
-            user.setDone();
-        }
+        ResponseEntity<?> response = cardService.PlayerDone(roomId, userId);
+
+//        List<Card> cards = cardRepository.findCardsByUserUserId(userId);
+//        if (cards.isEmpty()) {
+//            User user = userRepository.findByUserId(userId);
+//            user.setDone();
+//        }
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         CardMessageDto cardMessage = new CardMessageDto();
         cardMessage.setRoomId(message.getRoomId());
         cardMessage.setSender(message.getSender());
         cardMessage.setType(CardMessageDto.MessageType.ENDTURN);
+        rabbitTemplate.convertAndSend("game.exchange", "turn.room." + roomId, response);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
@@ -274,57 +308,69 @@ public class GameController {
         gameMessage.setRoomId(roomId);
         gameMessage.setSender(message.getSender());
         gameMessage.setType(GameMessageDto.MessageType.MATCHING);
+        rabbitTemplate.convertAndSend("game.exchange", "start.room." + roomId, message);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //cards를 보는 용도인데 수정이 필요함
-    private void cardCheck(CardMessageDto message) {
+    private void cardCheck(String roomId, CardMessageDto message) {
         System.out.println("여기에 들어오나 내 카드 조회");
-        User user = userRepository.findByUserId(message.getSender());
-        String userId = user.getUserId();
-        List<Card> cards = cardRepository.findCardsByUserUserId(userId);
+
+        CardsResponseDto cardsResponseDto = cardService.check(message.getSender());
+
+//        User user = userRepository.findByUserId(message.getSender());
+//        String userId = user.getUserId();
+//        List<Card> cards = cardRepository.findCardsByUserUserId(userId);
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         CardMessageDto cardMessage = new CardMessageDto();
         cardMessage.setRoomId(message.getRoomId());
         cardMessage.setSender(message.getSender());
         cardMessage.setType(CardMessageDto.MessageType.CHECK);
+        rabbitTemplate.convertAndSend("game.exchange", "check.room." + roomId, cardsResponseDto);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //중복 제거 수정 필요
-    private void cardDistinct(CardMessageDto message) {
+    private void cardDistinct(String roomId, CardMessageDto message) {
         System.out.println("여기에 들어오나 카드 중복 제거");
-        List<Integer> playerHands = cardRepository.findCardNumByUserUserId(message.getSender());
-        Map<Integer, Integer> countMap = new HashMap<>();
 
-        for (Integer hand : playerHands) {
-            countMap.put(hand, countMap.getOrDefault(hand, 0) + 1);
-        }
+        List<Integer> cards = cardService.distinct(message.getSender());
 
-        List<Integer> uniqueNumbers = new ArrayList<>();
-        for (int number : playerHands) {
-            int count = countMap.get(number);
-            if (count % 2 == 1 && !uniqueNumbers.contains(number)) {
-                uniqueNumbers.add(number);
-            }
-        }
+//        List<Integer> playerHands = cardRepository.findCardNumByUserUserId(message.getSender());
+//        Map<Integer, Integer> countMap = new HashMap<>();
+//
+//        for (Integer hand : playerHands) {
+//            countMap.put(hand, countMap.getOrDefault(hand, 0) + 1);
+//        }
+//
+//        List<Integer> uniqueNumbers = new ArrayList<>();
+//        for (int number : playerHands) {
+//            int count = countMap.get(number);
+//            if (count % 2 == 1 && !uniqueNumbers.contains(number)) {
+//                uniqueNumbers.add(number);
+//            }
+//        }
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         CardMessageDto cardMessage = new CardMessageDto();
         cardMessage.setRoomId(message.getRoomId());
         cardMessage.setSender(message.getSender());
         cardMessage.setType(CardMessageDto.MessageType.DISTINCT);
+        rabbitTemplate.convertAndSend("game.exchange", "distinct.room." + roomId, cards);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //상대방 카드 뽑기 수정 필요
-    private void cardPick(CardMessageDto message) {
+    //다음 사람 userid값 필요, 만약 프론트에서 못준다고 하면 cardDeal에서 순서 속성추가하고 저장
+    private void cardPick(String roomId, CardMessageDto message) {
         System.out.println("여기에 들어오나 상대 카드 뽑기");
-        List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
+
+        CardsResponseDto cardsResponseDto = cardService.pick(message.getSender(), message.getNextUser(), message.getNextCardNum());
+//        List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender()); //틀렸음
 //        cards.add(card);    //카드 어디로 반환해?
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
@@ -332,21 +378,27 @@ public class GameController {
         cardMessage.setRoomId(message.getRoomId());
         cardMessage.setSender(message.getSender());
         cardMessage.setType(CardMessageDto.MessageType.PICK);
+        rabbitTemplate.convertAndSend("game.exchange", "pick.room." + roomId, cardsResponseDto);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
 
     //수정 필요
-    private void cardShuffle(CardMessageDto message) {
+    //turnEnd처럼 물어보고 변경하기
+    private void cardShuffle(String roomId, CardMessageDto message) {
         System.out.println("여기에 들어오나 내 카드 섞기");
-        List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
-        Collections.shuffle(cards);
+
+        ResponseEntity response = cardService.shuffle(message.getSender());
+
+//        List<Card> cards = cardRepository.findCardsByUserUserId(message.getSender());
+//        Collections.shuffle(cards);
 
 //        String messageContent = jsonStringBuilder.gameStarter(game);
         CardMessageDto cardMessage = new CardMessageDto();
         cardMessage.setRoomId(message.getRoomId());
         cardMessage.setSender(message.getSender());
         cardMessage.setType(CardMessageDto.MessageType.SHUFFLE);
+        rabbitTemplate.convertAndSend("game.exchange", "shuffle.room." + roomId, response);
 //        gameMessage.setContent(messageContent);
 //        messagingTemplate.convertAndSend("/sub/game/" + message.getRoomId(), gameMessage);
     }
